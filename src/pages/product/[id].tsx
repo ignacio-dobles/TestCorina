@@ -1,25 +1,66 @@
-import { GetServerSideProps } from 'next';
-import { Container, Heading, Code } from '@chakra-ui/react';
-import Image from 'next/image';
-import { fetchProduct } from '@/lib/fetch';
+import {
+  Container,
+  Heading,
+  Text,
+  Image,
+  Box,
+  Button,
+  Stack,
+} from "@chakra-ui/react";
+import { fetchProduct } from "../../lib/fetch";
+import type { Product } from "../../lib/types";
 
-type Product = any; // intentionally loose
-
-type Props = { product: Product };
-
-export const getServerSideProps: GetServerSideProps<Props> = async (ctx) => {
-  const id = ctx.params?.id;
-
-  const product = await fetchProduct(id);
-
-  return { props: { product } };
+type FullProduct = Product & {
+  description?: string;
+  brand?: string;
 };
 
-export default function ProductPage({ product }: Props) {
+type Props = {
+  product: FullProduct;
+};
+
+export default function ProductDetailPage({ product }: Props) {
   return (
-    <Container maxW="4xl" py={8}>
-      <Heading size="lg" mb={4}>Product</Heading>
-      <Code whiteSpace="pre-wrap">{JSON.stringify(product, null, 5)}</Code>
+    <Container maxW="5xl" py={10}>
+      <Stack direction={["column", "row"]} spacing={10}>
+        {/* Image on the left side */}
+        <Box flex="1">
+          <Image
+            src={product.thumbnail ?? product.images?.[0]}
+            alt={product.title}
+            borderRadius="md"
+            objectFit="cover"
+            w="100%"
+            h="350px"
+          />
+        </Box>
+
+        {/* Info on the right side of product pge */}
+        <Box flex="1">
+          <Heading mb={4}>{product.title}</Heading>
+
+          <Text fontSize="lg" color="gray.600" mb={2}>
+            Brand: {product.brand ?? "N/A"}
+          </Text>
+
+          <Text color="gray.700" mb={6}>
+            {product.description ?? "No description available."}
+          </Text>
+
+          {/* This is a placeholder button, does not do anything right now */ } 
+          <Button colorScheme="blue" size="lg">
+            Add to Cart
+          </Button>
+        </Box>
+      </Stack>
     </Container>
   );
-} 
+}
+
+export async function getServerSideProps({ params }) {
+  const product = await fetchProduct(params.id);
+
+  return {
+    props: { product },
+  };
+}
